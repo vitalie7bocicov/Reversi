@@ -5,306 +5,13 @@ using namespace sf;
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <errno.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <netdb.h>
-#include <string.h>
+
 #include <math.h>
 #include <arpa/inet.h>
-#include <time.h>
-#include <fcntl.h>
 
-int port, player = 0;
-int board[8][8];
-char c_score[20];
-
-int getc()
-{
-    return 46.479;
-}
-
-int gety()
-{
-    return 50;
-}
-
-int msg_length(int sd)
-{
-    int m_len = 0, k = 0, pow = 1;
-    char digit[1];
-    digit[1] = '\0';
-    do
-    {
-        if (read(sd, digit, 1) <= 0)
-        {
-            return 0;
-        }
-        digit[1] = '\0';
-        if (digit[0] >= '0' && digit[0] <= '9')
-        {
-            m_len = atoi(digit) + m_len * pow;
-            pow *= 10;
-        }
-
-    } while (digit[0] >= '0' && digit[0] <= '9');
-
-    return m_len;
-}
-
-void to_int_board(char *buff)
-{
-    int i, j, l = 0, c = 0;
-    for (i = 0; i < 64; i++)
-    {
-        if (i && i % 8 == 0)
-        {
-            l++;
-            c = 0;
-        }
-        board[l][c++] = buff[i] - '0';
-    }
-}
-
-int check_insert(int sd, char *buff)
-{
-    if (strstr(buff, "Please insert your move") || strstr(buff, "Invalid move! Please insert valid move!"))
-    {
-        return 1;
-    }
-    return 0;
-}
-
-int check_username(int sd, char *buff)
-{
-    if (strstr(buff, "Type in your username"))
-    {
-        return 1;
-    }
-    return 0;
-}
-
-int rcv_username(int sd)
-{
-    char input_username[30], username[32];
-    int leng;
-    leng = read(0, input_username, 30);
-    if (leng <= 0)
-    {
-        return 0;
-    }
-    input_username[leng] = '\0';
-    leng--;
-    username[0] = leng / 10 + '0';
-    username[1] = leng % 10 + '0';
-    username[2] = '\0';
-    strcat(username, input_username);
-    leng += 2;
-    if (write(sd, username, leng) <= 0)
-    {
-        perror("error at write username\n");
-    }
-    return 1;
-}
-
-int check_player_disconnected(int sd, char *buff)
-{
-    if (strstr(buff, "continue your game"))
-    {
-        printf("%s", buff);
-        fflush(stdout);
-
-        return 1;
-    }
-    return 0;
-}
-
-int check_score(int sd, char *buff)
-{
-    if (strlen(buff) == 5 && buff[2] == '-')
-    {
-        c_score[0] = '\0';
-        strcat(c_score, "WHITE ");
-        strcat(c_score, buff);
-        strcat(c_score, " BLACK");
-        return 1;
-    }
-    return 0;
-}
-
-int check_conn(int sd, char *buff)
-{
-    if (strstr(buff, "Connected succesful!"))
-    {
-        player = buff[8] - '0';
-        return 1;
-    }
-    return 0;
-}
-
-int check_gameover(int sd, char *buff)
-{
-    if (strstr(buff, "LEADERBOARD") || strstr(buff, "You lost!") || strstr(buff, "You won!") || strstr(buff, "draw") || strstr(buff, "Game Over") || strstr(buff, "Type in your username") || strstr(buff, "Username is taken"))
-    {
-        return 1;
-    }
-    return 0;
-}
-
-int check_board(char *buff, int len)
-{
-    if (len == 64)
-    {
-        to_int_board(buff);
-        return 1;
-    }
-    return 0;
-}
-
-int check_win(int sd, char *buff)
-{
-    if (strstr(buff, "You won!"))
-    {
-        return 1;
-    }
-    return 0;
-}
-
-int check_lost(int sd, char *buff)
-{
-    if (strstr(buff, "You lost!"))
-    {
-        return 1;
-    }
-    return 0;
-}
-
-int check_draw(int sd, char *buff)
-{
-    if (strstr(buff, "It's a draw!"))
-    {
-        return 1;
-    }
-    return 0;
-}
-
-int check_leaderboard(int sd, char *buff)
-{
-    if (strstr(buff, "LEADERBOARD"))
-    {
-        return 1;
-    }
-    return 0;
-}
-
-int check_invalid_username(int sd, char *buff)
-{
-    if (strstr(buff, "Username is taken"))
-    {
-        return 1;
-    }
-    return 0;
-}
-
-int check_endgame()
-{
-    int i, j;
-    for (i = 0; i < 8; i++)
-        for (j = 0; j < 8; j++)
-            if (board[i][j] == 3)
-                return 0;
-    return 1;
-}
-
-int rcv_move_auto()
-{
-    int i, j, end;
-    end = check_endgame();
-    if (!end)
-    {
-        srand(time(NULL));
-        do
-        {
-            i = rand() % 8;
-            j = rand() % 8;
-        } while (board[i][j] != 3);
-
-        return i * 10 + j;
-    }
-    return -1;
-}
-
-int readS(int sd)
-{
-    int m_len, ok;
-    m_len = msg_length(sd);
-    char buff[m_len];
-    ok = read(sd, buff, m_len);
-    if (ok <= 0)
-        return ok;
-
-    buff[ok] = '\0';
-
-    if (check_conn(sd, buff))
-        return 1;
-    if (check_score(sd, buff))
-        return 2;
-    if (check_board(buff, m_len))
-        return 3;
-    if (check_insert(sd, buff))
-        return 4;
-
-    if (check_player_disconnected(sd, buff))
-        return 6;
-
-    if (check_gameover(sd, buff))
-    {
-        printf("%s\n", buff);
-        fflush(stdout);
-        if (check_win(sd, buff))
-            return 7;
-        if (check_lost(sd, buff))
-            return 8;
-        if (check_draw(sd, buff))
-            return 9;
-        if (check_username(sd, buff))
-            return 10;
-        if (check_leaderboard(sd, buff))
-            return 11;
-        if (check_invalid_username(sd, buff))
-            return 12;
-    }
-
-    return 0;
-}
-
-void close_conn(int sd, int status)
-{
-    int flags = fcntl(sd, F_GETFL, 0);
-    flags &= ~O_NONBLOCK;
-    fcntl(sd, F_SETFL, flags);
-
-    int receive = 0, send = 0;
-    int k = 0;
-    if (status != 6)
-    {
-        while (k != 2)
-        {
-            receive = readS(sd);
-            if (receive)
-                k++;
-        }
-    }
-
-    send = write(sd, "dis", 3);
-    if (send <= 0)
-    {
-        perror("error: [close_conn]-write");
-    }
-    printf("CLOSING CONNECTION\n");
-    fflush(stdout);
-    close(sd);
-}
+#include "functions_client/close_conn.h"
+int port;
 
 void play(int sd)
 {
@@ -312,15 +19,15 @@ void play(int sd)
     Event e;
 
     Texture t1;
-    t1.loadFromFile("rev.png");
+    t1.loadFromFile("resources/rev.png");
 
     Image icon;
-    icon.loadFromFile("icon.png");
+    icon.loadFromFile("resources/icon.png");
     window.setIcon(512, 512, icon.getPixelsPtr());
 
     Sprite boardImg(t1);
     Font font;
-    if (!font.loadFromFile("font.ttf"))
+    if (!font.loadFromFile("resources/font.ttf"))
     {
         printf("error:loading font\n");
     }
@@ -368,7 +75,7 @@ void play(int sd)
                     if (board[i][j] == 1)
                     {
                         Texture p1;
-                        p1.loadFromFile("white.png");
+                        p1.loadFromFile("resources/white.png");
                         Sprite p(p1);
                         p.setScale(Vector2f(0.2, 0.2));
                         p.setPosition(j * getc() + getc(), i * getc() + getc());
@@ -377,7 +84,7 @@ void play(int sd)
                     else if (board[i][j] == 2)
                     {
                         Texture p2;
-                        p2.loadFromFile("black.png");
+                        p2.loadFromFile("resources/black.png");
                         Sprite p(p2);
                         p.setScale(Vector2f(0.2, 0.2));
                         p.setPosition(j * getc() + getc(), i * getc() + getc());
@@ -386,7 +93,7 @@ void play(int sd)
                     else if (board[i][j] == 3)
                     {
                         Texture y;
-                        y.loadFromFile("yellow.png");
+                        y.loadFromFile("resources/yellow.png");
                         Sprite p(y);
                         p.setScale(Vector2f(0.2, 0.2));
                         p.setPosition(j * getc() + gety(), i * getc() + gety());
@@ -436,8 +143,8 @@ void play(int sd)
                                     perror("error:write move\n");
                                 }
 
-                                status = readS(sd);       // rcv score
-                                status = readS(sd);       // and board
+                                status = check_msg(sd);   // rcv score
+                                status = check_msg(sd);   // and board
                                 score.setString(c_score); // update score
                             }
                             else
@@ -484,7 +191,7 @@ void play(int sd)
         //     score.setString(c_score);
         // }
         if (status != 99 && status != 3 && status != 6 && status != 10 && status != 100) // not move,board,opp diss,insert username
-            status = readS(sd);
+            status = check_msg(sd);
 
         switch (status)
         {

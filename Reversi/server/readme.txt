@@ -1,4 +1,7 @@
-Install SQLite on Linux:
+Instructions for Linux:
+
+
+Install SQLite:
     check if you already have SQLite installed on your machine:
 
     $sqlite3
@@ -6,33 +9,26 @@ Install SQLite on Linux:
     Enter ".help" for instructions
     Enter SQL statements terminated with a ";"
     sqlite>
+
     If you do not see the above result, then it means you do not have SQLite installed on your Linux machine.
+
     Following are the following steps to install SQLite −
 
     Step 1 − Go to SQLite download page and download sqlite-autoconf-*.tar.gz from source code section.
 
     Step 2 − Run the following command −
 
-    $tar xvfz sqlite-autoconf-3071502.tar.gz
-    $cd sqlite-autoconf-3071502
+    $tar xvfz sqlite-autoconf-*.tar.gz
+    $cd sqlite-autoconf-*.tar.gz
     $./configure --prefix=/usr/local
     $make
     $make install
 
-Install SFML:
-    Run the following command −
-
-    $sudo apt-get install libsfml-dev
 
 
 Start the server:
-    Run the following command in the /Reversi folder −
+    Run the following commands:
 
     $make
-
-Connect a player:
-    Run the following command in the /Reversi folder −
-
     $make run
 
-Enjoy!
