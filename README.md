@@ -2,7 +2,7 @@
 Reversi is a strategy board game for two players, played on an 8×8 board.
 
 
-This game was implemented using the client server architecture, the communication was done via TCP/IP.
+This game was implemented using the client server architecture, the communication was done via TCP/IP, in C and C++.
 
 
 Technologies used:
