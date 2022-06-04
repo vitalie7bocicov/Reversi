@@ -1,8 +1,0 @@
-{
-    "files.associations": {
-        "*.ejs": "html",
-        "*.alk": "cpp",
-        "unistd.h": "c",
-        "types.h": "c"
-    }
-}
