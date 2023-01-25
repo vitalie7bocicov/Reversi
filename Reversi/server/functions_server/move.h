@@ -74,7 +74,7 @@ int move_pc(int **board, int *score, int desc, int player)
     int opp = get_opponent(player);
 
     int mv;
-    mv = rcv_move_auto(board);
+    mv = rcv_move_auto(board, player);
     sleep(1);
     update_board(board, mv, player);
     remove_possible_moves(board);
