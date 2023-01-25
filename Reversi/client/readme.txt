@@ -2,7 +2,7 @@ Instructions for Linux:
 
 Install SFML:
     Run the following command −
-
+    $sudo apt-get install g++
     $sudo apt-get install libsfml-dev
 
 

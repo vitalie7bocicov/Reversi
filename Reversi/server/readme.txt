@@ -1,6 +1,9 @@
 Instructions for Linux:
 
 
+Instal gcc:
+  $sudo apt-get install gcc
+
 Install SQLite:
     check if you already have SQLite installed on your machine:
 
