@@ -1,0 +1,5 @@
+Reversi/client/client
+Reversi/client/client.o
+Reversi/server/server
+Reversi/server/db/leaderboard.db
+
