@@ -1,5 +1,18 @@
-#include "check.h"
+#include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <malloc.h>
+
+void msg_invalid_answer(int desc);
+void msg_player_disconnected(int desc);
+int get_possible_moves(int **board, int *possible_moves, int k);
+void remove_possible_moves(int **board);
+int get_opponent(int player);
+void mark_possible_moves(int **board, int player);
+int check_endgame(int **board);
+void capture_pieces(int **board, int *score, int x, int y, int player);
 
 int rcv_answer(int desc)
 {
@@ -32,9 +45,10 @@ int rcv_answer(int desc)
     {
         return -3;
     }
+    return 1;
 }
 
-int rcv_move(int **board, int desc1, int desc2)
+int rcv_move(int desc1, int desc2)
 {
     char pos[4];
     int xy, conn;
@@ -93,20 +107,6 @@ int heuristic(int **board, int player)
     return (ourScore - opponentScore);
 }
 
-int get_possible_moves(int **board, int *possible_moves, int player, int k)
-{
-    int i = 0, j = 0;
-    for (i = 0; i < 8; i++)
-        for (j = 0; j < 8; j++)
-        {
-            if (board[i][j] == 3) // possible move
-            {
-                possible_moves[k++] = i * 10 + j;
-            }
-        }
-    return k;
-}
-
 int **copy_board(int **to_copy)
 {
     int i, j;
@@ -119,7 +119,7 @@ int **copy_board(int **to_copy)
     return board;
 }
 
-int make_move(int **board, int move, int player)
+void make_move(int **board, int move, int player)
 {
     int i = move / 10;
     int j = move % 10;
@@ -141,7 +141,7 @@ int minimax_value(int **board, int player, int current_player, int depth)
     int *possible_moves = malloc(sizeof(int) * 60);
     int num_possible_moves = 0;
     int opponent = get_opponent(current_player);
-    num_possible_moves = get_possible_moves(board, possible_moves, current_player, num_possible_moves);
+    num_possible_moves = get_possible_moves(board, possible_moves, num_possible_moves);
     if (num_possible_moves == 0)
     {
         return minimax_value(board, player, opponent, depth + 1);
@@ -186,11 +186,10 @@ int minimax_value(int **board, int player, int current_player, int depth)
 
 int minimax_decision(int **board, int player)
 {
-    int x = 0, y = 0;
     int *possible_moves = malloc(sizeof(int) * 60);
     int num_possible_moves = 0;
     int opponent = get_opponent(player);
-    num_possible_moves = get_possible_moves(board, possible_moves, player, num_possible_moves);
+    num_possible_moves = get_possible_moves(board, possible_moves, num_possible_moves);
     if (num_possible_moves == 0) // if no moves return -1
     {
         return -1;
@@ -216,17 +215,10 @@ int minimax_decision(int **board, int player)
 
 int rcv_move_auto(int **board, int player)
 {
-    int i, j, end;
+    int end;
     end = check_endgame(board);
     if (!end)
     {
-        // srand(time(NULL));
-        // do
-        // {
-        //     i = rand() % 8;
-        //     j = rand() % 8;
-        // } while (board[i][j] != 3);
-        // return i * 10 + j;
         int best_move = minimax_decision(board, player);
         return best_move;
     }

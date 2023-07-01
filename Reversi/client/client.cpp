@@ -64,6 +64,8 @@ void play(int sd)
 
     while (window.isOpen())
     {
+        if(status)
+            printf("status: %d \n", status);
         if (status == 3 || status == 4 || status == 7 || status == 8 || status == 9 || status == 100) // board move win lost draw
         {
             // draw board+score+you
@@ -122,14 +124,17 @@ void play(int sd)
             }
             if (e.type == Event::MouseButtonPressed)
             {
+                printf("mouse pressed!\n");
                 if (e.mouseButton.button == Mouse::Left)
                 {
                     if (status == 99) // move was inserted
                     {
+                        printf("status 99\n");
                         if (pos.x > 45 && pos.x < 405 && pos.y > 45 && pos.y < 405)
                         {
                             x = (pos.x - 40) / 46.5;
                             y = (pos.y - 40) / 46.5;
+                            printf("%d\n", board[y][x]);
                             if (board[y][x] == 3)
                             {
                                 printf("MOVE: %d %d\n", y, x);
@@ -170,26 +175,7 @@ void play(int sd)
 
                 } // left click
             }     // click
-        }         // poll event
-        // if (status == 99) // muto
-        // {
-        //     x = rcv_move_auto() / 10;
-        //     y = rcv_move_auto() % 10;
-        //     printf("MOVE: %d %d\n", y, x);
-        //     char move[3];
-        //     move[0] = x + '0';
-        //     move[1] = ' ';
-        //     move[2] = y + '0';
-        //     move[3] = '\0';
-        //     if (write(sd, move, 3) <= 0)
-        //     {
-        //         perror("[player move]Eroare la write() catre server.\n");
-        //     }
-
-        //     status = readS(sd);
-        //     status = readS(sd);
-        //     score.setString(c_score);
-        // }
+        }         
         if (status != 99 && status != 3 && status != 6 && status != 10 && status != 100) // not move,board,opp diss,insert username
             status = check_msg(sd);
 

@@ -1,4 +1,27 @@
-#include "move.h"
+#include <stdio.h>
+#include <malloc.h>
+#include <string.h>
+#include <unistd.h>
+
+void mark_possible_moves(int **board, int player);
+int get_opponent(int player);
+int move_pc(int **board, int *score, int player);
+void msg_player_1(int desc, int status);
+void msg_score(int desc, int *score);
+void msg_invalid_username(int desc);
+void msg_winner(int desc);
+void msg_tie(int desc);
+void msg_loser(int desc);
+void msg_board(int **board, int desc);
+void msg_leaderboard(int desc, char *ldboard);
+char *msg_rcv_username(int desc);
+void msg_endgame(char *ldboard, int desc1, int desc2, int *score);
+int move_player(int **board, int *score, int desc, int player);
+void insert_db(int desc, int score, char *winner);
+void select_db(char *ldboard);
+int move_player_1(int **board, int *score, int desc1, int desc2);
+int move_player_2(int **board, int *score, int desc1, int desc2);
+void msg_gameOver(int desc);
 
 int **init_board()
 {
@@ -36,12 +59,13 @@ char *init_ldboard()
 
 void pc_vs_player(int **board, char *ldboard, int *score, int desc, int player)
 {
+    printf("pc vs player entered\n");
     int opp = get_opponent(player);
 
     int gameOver = 0;
     while (!gameOver && gameOver != -1)
     {
-        gameOver = move_pc(board, score, desc, opp);
+        gameOver = move_pc(board, score, player);
         if (gameOver)
             break;
         gameOver = move_player(board, score, desc, player);
@@ -63,7 +87,7 @@ void pc_vs_player(int **board, char *ldboard, int *score, int desc, int player)
             char *winner;
             msg_winner(desc);
             winner = msg_rcv_username(desc);
-            insert_db(player, desc, score[player], winner);
+            insert_db(desc, score[player], winner);
             select_db(ldboard);
             msg_leaderboard(desc, ldboard);
         }

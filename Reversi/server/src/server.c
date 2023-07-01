@@ -1,10 +1,19 @@
+#include <stdio.h>
+#include <malloc.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <signal.h>
 #include <pthread.h>
-#include "functions_server/game.h"
+#include <string.h>
+#include <errno.h>
+
 #define PORT 2000
+
+void start_game(int desc1, int desc2);
+void init_db();
+void msg_player_1(int desc, int status);
+void msg_player_2(int desc, int status);
 
 typedef struct thData
 {
@@ -29,8 +38,7 @@ static void *treat(void *arg)
 int main()
 {
     init_db();
-    struct sockaddr_in server;
-    struct sockaddr_in from;
+    struct sockaddr_in server, client;
     int sd;
 
     if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // tcp socket
@@ -43,7 +51,7 @@ int main()
     setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
     bzero(&server, sizeof(server));
-    bzero(&from, sizeof(from));
+    bzero(&client, sizeof(client));
 
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -51,7 +59,7 @@ int main()
 
     if (bind(sd, (struct sockaddr *)&server, sizeof(struct sockaddr)) == -1)
     {
-        perror("[server]Eroare la bind().\n");
+        perror("[server]ERROR at bind.\n");
         return errno;
     }
 
@@ -67,9 +75,9 @@ int main()
     while (1)
     {
         int player;
-        int length = sizeof(from);
+        socklen_t length = sizeof(client);
 
-        if ((player = accept(sd, (struct sockaddr *)&from, &length)) < 0)
+        if ((player = accept(sd, (struct sockaddr *)&client, &length)) < 0)
         {
             perror("error: accept");
             continue;
@@ -96,8 +104,6 @@ int main()
             td->desc1 = p1_desc;
             td->desc2 = player;
 
-            printf("CREATING THREAD...\n");
-            fflush(stdout);
             pthread_t thread;
             pthread_create(&thread, NULL, &treat, td);
         }

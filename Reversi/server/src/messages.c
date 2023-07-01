@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <sqlite3.h>
+
+void insert_db(int desc, int score, char *winner);
+void select_db(char *ldboard);
 
 void msg_player_1(int desc, int status)
 {
@@ -22,7 +24,7 @@ void msg_player_1(int desc, int status)
         }
         break;
     case 2:
-        if (write(desc, "87 [player 1]Please insert your move (ex: 1 1)! (your number is 1, possible move is 3)\n", 90) <= 0)
+        if (write(desc, "46 [player 1]Please insert your move (ex: 1 1)!\n", 49) <= 0)
         {
             perror("error:[msg_player_1.2]\n");
         }
@@ -34,7 +36,7 @@ void msg_player_1(int desc, int status)
         }
         break;
     case 4:
-        if (write(desc, "89 [player 1]Invalid move! Please insert valid move!(your number is 1, possible move is 3)\n", 92) <= 0)
+        if (write(desc, "51 [player 1]Invalid move! Please insert valid move!\n", 54) <= 0)
         {
             perror("error:[msg_player_1.4]\n");
         }
@@ -61,7 +63,7 @@ void msg_player_2(int desc, int status)
         }
         break;
     case 2:
-        if (write(desc, "87 [player 2]Please insert your move (ex: 1 1)! (your number is 2, possible move is 3)\n", 90) <= 0)
+        if (write(desc, "47 [player 2]Please insert your move (ex: 1 1)! \n", 50) <= 0)
         {
             perror("error:[msg_player_2.2]\n");
         }
@@ -73,7 +75,7 @@ void msg_player_2(int desc, int status)
         }
         break;
     case 4:
-        if (write(desc, "89 [player 2]Invalid move! Please insert valid move!(your number is 2, possible move is 3)\n", 92) <= 0)
+        if (write(desc, "51 [player 2]Invalid move! Please insert valid move!\n", 54) <= 0)
         {
             perror("error:[msg_player_2.4]\n");
         }
@@ -85,7 +87,13 @@ void msg_player_2(int desc, int status)
 
 void msg_board(int **board, int desc)
 {
-    char char_board[66], k = 3;
+    char *char_board = (char *)malloc(sizeof(char) * 67);
+    if (char_board == NULL)
+    {
+        perror("error: Failed to allocate memory\n");
+        return;
+    }
+    int k = 3;
     for (int i = 0; i < 8; i++)
         for (int j = 0; j < 8; j++)
             char_board[k++] = board[i][j] + '0';
@@ -97,12 +105,13 @@ void msg_board(int **board, int desc)
     {
         perror("error:[msg_board]\n");
     }
+    free(char_board);
 }
 
 void msg_score(int desc, int *score)
 {
     char char_score[10];
-    char_score[0] = '6';
+    char_score[0] = '5';
     char_score[1] = ' ';
     char_score[2] = score[1] / 10 + '0';
     char_score[3] = score[1] % 10 + '0';
@@ -152,18 +161,17 @@ void msg_gameOver(int desc)
 
 char *msg_rcv_username(int desc)
 {
-    if (write(desc, "44 Type in your username for the leaderboard:", 47) <= 0)
+    if (write(desc, "44 Type in your username for the leaderboard:", 46) <= 0)
     {
         perror("error:[msg_msg_rcv_username]-write\n");
     }
     char *winner;
     winner = malloc(sizeof(char) * 30);
-    int nr = 0, k_len;
+    int k_len;
     char msg_len[3];
     read(desc, msg_len, 2);
     msg_len[2] = '\0';
 
-    int len;
     k_len = atoi(msg_len);
     if (read(desc, winner, k_len) <= 0)
     {
@@ -218,5 +226,43 @@ void msg_leaderboard(int desc, char *ldboard)
     if (write(desc, msg_ldboard, strlen(msg_ldboard)) <= 0)
     {
         perror("error:[msg_leaderboard]\n");
+    }
+}
+
+void msg_endgame(char *ldboard, int desc1, int desc2, int *score)
+{
+    int win = 0;
+    char *winner;
+    if (score[1] > score[2])
+    {
+        msg_winner(desc1);
+        msg_loser(desc2);
+        win = 1;
+    }
+
+    else if (score[1] < score[2])
+    {
+        msg_winner(desc2);
+        msg_loser(desc1);
+        win = 2;
+    }
+    else
+    {
+        msg_tie(desc1);
+        msg_tie(desc2);
+    }
+    if (win == 1)
+    {
+        winner = msg_rcv_username(desc1);
+        insert_db(desc1, score[1], winner);
+        select_db(ldboard);
+        msg_leaderboard(desc1, ldboard);
+    }
+    else if (win == 2)
+    {
+        winner = msg_rcv_username(desc2);
+        insert_db(desc2, score[2], winner);
+        select_db(ldboard);
+        msg_leaderboard(desc2, ldboard);
     }
 }

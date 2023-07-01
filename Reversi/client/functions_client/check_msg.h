@@ -1,7 +1,7 @@
 #include "util.h"
 
 int check_insert(int sd, char *buff)
-{
+{   
     if (strstr(buff, "Please insert your move") || strstr(buff, "Invalid move! Please insert valid move!"))
     {
         return 1;
@@ -123,10 +123,13 @@ int check_msg(int sd)
     m_len = msg_length(sd);
     char buff[m_len];
     ok = read(sd, buff, m_len);
+    
     if (ok <= 0)
         return ok;
 
     buff[ok] = '\0';
+    printf("msg received: %s\n", buff);
+    printf("msg len: %d\n", m_len);
 
     if (check_conn(sd, buff))
         return 1;

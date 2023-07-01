@@ -1,5 +1,14 @@
-#include "messages.h"
-int N = 10;
+#include <stdio.h>
+#include <stdlib.h>
+#include <sqlite3.h>
+#include <malloc.h>
+#include <string.h>
+
+int N = 10; // leaderboard top N
+
+void msg_invalid_username(int desc);
+char *msg_rcv_username(int desc);
+
 void init_db()
 {
     sqlite3 *db;
@@ -24,7 +33,7 @@ void init_db()
     sqlite3_close(db);
 }
 
-void insert_db(int player, int desc, int score, char *winner)
+void insert_db(int desc, int score, char *winner)
 {
     sqlite3 *db;
     char *msg_err = 0;
@@ -60,7 +69,6 @@ void select_db(char *ldboard)
 {
 
     sqlite3 *db;
-    char *msg_err = 0;
 
     int ok = sqlite3_open("db/leaderboard.db", &db);
 
@@ -88,12 +96,12 @@ void select_db(char *ldboard)
         line[0] = '\0';
         strcat(line, "|");
 
-        const char *score = sqlite3_column_text(stmt, 0);
-        const char *name = sqlite3_column_text(stmt, 1);
+        const unsigned char *score = sqlite3_column_text(stmt, 0);
+        const unsigned char *name = sqlite3_column_text(stmt, 1);
 
-        strcat(line, score);
+        strcat(line, (const char *)score);
         strcat(line, "   |");
-        strcat(line, name);
+        strcat(line, (const char *)name);
         strcat(line, "\n");
 
         strcat(ldboard, line);

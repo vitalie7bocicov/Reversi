@@ -1,4 +1,28 @@
-#include "receive.h"
+#include <stdlib.h>
+
+int check_endgame(int **board)
+{
+    int i, j;
+    for (i = 0; i < 8; i++)
+        for (j = 0; j < 8; j++)
+            if (board[i][j] == 3)
+                return 0;
+    return 1;
+}
+
+int get_possible_moves(int **board, int *possible_moves, int k)
+{
+    int i = 0, j = 0;
+    for (i = 0; i < 8; i++)
+        for (j = 0; j < 8; j++)
+        {
+            if (board[i][j] == 3) // possible move
+            {
+                possible_moves[k++] = i * 10 + j;
+            }
+        }
+    return k;
+}
 
 int get_opponent(int player)
 {
