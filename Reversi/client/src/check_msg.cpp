@@ -1,7 +1,12 @@
-#include "util.h"
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
-int check_insert(int sd, char *buff)
-{   
+int msg_length(int sd);
+void to_int_board(char *buff);
+
+int check_insert(char *buff)
+{
     if (strstr(buff, "Please insert your move") || strstr(buff, "Invalid move! Please insert valid move!"))
     {
         return 1;
@@ -9,7 +14,7 @@ int check_insert(int sd, char *buff)
     return 0;
 }
 
-int check_username(int sd, char *buff)
+int check_username(char *buff)
 {
     if (strstr(buff, "Type in your username"))
     {
@@ -18,7 +23,7 @@ int check_username(int sd, char *buff)
     return 0;
 }
 
-int check_player_disconnected(int sd, char *buff)
+int check_player_disconnected(char *buff)
 {
     if (strstr(buff, "continue your game"))
     {
@@ -30,10 +35,11 @@ int check_player_disconnected(int sd, char *buff)
     return 0;
 }
 
-int check_score(int sd, char *buff)
+int check_score(char *buff)
 {
     if (strlen(buff) == 5 && buff[2] == '-')
     {
+        extern char c_score[20];
         c_score[0] = '\0';
         strcat(c_score, "WHITE ");
         strcat(c_score, buff);
@@ -43,17 +49,18 @@ int check_score(int sd, char *buff)
     return 0;
 }
 
-int check_conn(int sd, char *buff)
+int check_conn(char *buff)
 {
     if (strstr(buff, "Connected succesful!"))
     {
+        extern int player;
         player = buff[8] - '0';
         return 1;
     }
     return 0;
 }
 
-int check_gameover(int sd, char *buff)
+int check_gameover(char *buff)
 {
     if (strstr(buff, "LEADERBOARD") || strstr(buff, "You lost!") || strstr(buff, "You won!") || strstr(buff, "draw") || strstr(buff, "Game Over") || strstr(buff, "Type in your username") || strstr(buff, "Username is taken"))
     {
@@ -72,7 +79,7 @@ int check_board(char *buff, int len)
     return 0;
 }
 
-int check_win(int sd, char *buff)
+int check_win(char *buff)
 {
     if (strstr(buff, "You won!"))
     {
@@ -81,7 +88,7 @@ int check_win(int sd, char *buff)
     return 0;
 }
 
-int check_lost(int sd, char *buff)
+int check_lost(char *buff)
 {
     if (strstr(buff, "You lost!"))
     {
@@ -90,7 +97,7 @@ int check_lost(int sd, char *buff)
     return 0;
 }
 
-int check_draw(int sd, char *buff)
+int check_draw(char *buff)
 {
     if (strstr(buff, "It's a draw!"))
     {
@@ -99,7 +106,7 @@ int check_draw(int sd, char *buff)
     return 0;
 }
 
-int check_leaderboard(int sd, char *buff)
+int check_leaderboard(char *buff)
 {
     if (strstr(buff, "LEADERBOARD"))
     {
@@ -108,7 +115,7 @@ int check_leaderboard(int sd, char *buff)
     return 0;
 }
 
-int check_invalid_username(int sd, char *buff)
+int check_invalid_username(char *buff)
 {
     if (strstr(buff, "Username is taken"))
     {
@@ -123,38 +130,38 @@ int check_msg(int sd)
     m_len = msg_length(sd);
     char buff[m_len];
     ok = read(sd, buff, m_len);
-    
+
     if (ok <= 0)
         return ok;
 
     buff[ok] = '\0';
 
-    if (check_conn(sd, buff))
+    if (check_conn(buff))
         return 1;
-    if (check_score(sd, buff))
+    if (check_score(buff))
         return 2;
     if (check_board(buff, m_len))
         return 3;
-    if (check_insert(sd, buff))
+    if (check_insert(buff))
         return 4;
 
-    if (check_player_disconnected(sd, buff))
+    if (check_player_disconnected(buff))
         return 6;
 
-    if (check_gameover(sd, buff))
+    if (check_gameover(buff))
     {
         fflush(stdout);
-        if (check_win(sd, buff))
+        if (check_win(buff))
             return 7;
-        if (check_lost(sd, buff))
+        if (check_lost(buff))
             return 8;
-        if (check_draw(sd, buff))
+        if (check_draw(buff))
             return 9;
-        if (check_username(sd, buff))
+        if (check_username(buff))
             return 10;
-        if (check_leaderboard(sd, buff))
+        if (check_leaderboard(buff))
             return 11;
-        if (check_invalid_username(sd, buff))
+        if (check_invalid_username(buff))
             return 12;
     }
 

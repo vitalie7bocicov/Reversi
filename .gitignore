@@ -2,4 +2,4 @@ Reversi/client/client
 Reversi/client/client.o
 Reversi/server/output
 Reversi/server/db/leaderboard.db
-
+Reversi/client/output

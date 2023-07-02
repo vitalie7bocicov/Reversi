@@ -6,12 +6,18 @@ using namespace sf;
 #include <netinet/in.h>
 #include <errno.h>
 #include <netdb.h>
-
+#include <unistd.h>
 #include <math.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 
-#include "functions_client/close_conn.h"
-int port;
+
+int port = 0;
+int check_msg(int sd);
+int getc();
+int gety();
+int rcv_username(int sd);
+void close_conn(int sd, int status);
 
 void play(int sd)
 {
@@ -59,9 +65,13 @@ void play(int sd)
 
     printf("Welcome to REVERSI! \n");
     fflush(stdout);
+    
+    extern int board[8][8];
+    extern int player;
+    extern char c_score[20];
     int x, y;
     int status = 0;
-
+    
     while (window.isOpen())
     {
         if (status == 3 || status == 4 || status == 7 || status == 8 || status == 9 || status == 100) // board move win lost draw
@@ -158,7 +168,7 @@ void play(int sd)
                         char answer[1];
                         answer[0] = 'y';
                         answer[1] = '\0';
-                        if (write(sd, answer, 2) <= 0)
+                        if (write(sd, answer, 1) <= 0)
                         {
                             perror("error:write answer\n");
                         }

@@ -1,5 +1,10 @@
-#include "check_msg.h"
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include <time.h>
+#include <string.h>
+
+int check_endgame();
 
 int rcv_username(int sd)
 {
@@ -30,6 +35,7 @@ int rcv_move_auto()
     end = check_endgame();
     if (!end)
     {
+        extern int board[8][8];
         srand(time(NULL));
         do
         {
