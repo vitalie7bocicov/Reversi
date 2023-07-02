@@ -7,12 +7,12 @@
 
 void msg_invalid_answer(int desc);
 void msg_player_disconnected(int desc);
-int get_possible_moves(int **board, int *possible_moves, int k);
 void remove_possible_moves(int **board);
 int get_opponent(int player);
 void mark_possible_moves(int **board, int player);
 int check_endgame(int **board);
 void capture_pieces(int **board, int *score, int x, int y, int player);
+int minimax_decision(int **board, int player);
 
 int rcv_answer(int desc)
 {
@@ -83,134 +83,6 @@ int rcv_move(int desc1, int desc2)
     strcpy(pos + 1, pos + 2);
     xy = atoi(pos);
     return xy;
-}
-
-int get_score(int **board, int player)
-{
-    int i, j, score = 0;
-    for (i = 0; i < 8; i++)
-        for (j = 0; j < 8; j++)
-        {
-            if (board[i][j] == player)
-            {
-                score++;
-            }
-        }
-    return score;
-}
-
-int heuristic(int **board, int player)
-{
-    int opponent = get_opponent(player);
-    int ourScore = get_score(board, player);
-    int opponentScore = get_score(board, opponent);
-    return (ourScore - opponentScore);
-}
-
-int **copy_board(int **to_copy)
-{
-    int i, j;
-    int **board = (int **)malloc(sizeof(int *) * 8);
-    for (i = 0; i < 8; i++)
-        board[i] = (int *)malloc(sizeof(int) * 8);
-    for (i = 0; i < 8; i++)
-        for (j = 0; j < 8; j++)
-            board[i][j] = to_copy[i][j];
-    return board;
-}
-
-void make_move(int **board, int move, int player)
-{
-    int i = move / 10;
-    int j = move % 10;
-    int dumb_score[3];
-    dumb_score[1] = 2;
-    dumb_score[2] = 2;
-    board[i][j] = player;
-    remove_possible_moves(board);
-    capture_pieces(board, dumb_score, i, j, player);
-    mark_possible_moves(board, get_opponent(player));
-}
-
-int minimax_value(int **board, int player, int current_player, int depth)
-{
-    if ((depth == 7) || check_endgame(board))
-    {
-        return heuristic(board, player);
-    }
-    int *possible_moves = malloc(sizeof(int) * 60);
-    int num_possible_moves = 0;
-    int opponent = get_opponent(current_player);
-    num_possible_moves = get_possible_moves(board, possible_moves, num_possible_moves);
-    if (num_possible_moves == 0)
-    {
-        return minimax_value(board, player, opponent, depth + 1);
-    }
-    else
-    {
-
-        int best_move_val = -99999;
-        if (player != current_player) // opponent
-            best_move_val = 99999;
-        // Try out every single move
-        for (int i = 0; i < num_possible_moves; i++)
-        {
-            // Apply the move to a new board
-            int **temp_board = copy_board(board);
-            make_move(temp_board, possible_moves[i], current_player);
-            // Recursive call
-            int val = minimax_value(temp_board, player, opponent,
-                                    depth + 1);
-            // Remember best move
-            if (player == current_player)
-            {
-                // Remember max if it's the originator's turn
-                if (val > best_move_val)
-                {
-                    best_move_val = val;
-                }
-            }
-            else
-            {
-                // Remember min if it's opponent turn
-                if (val < best_move_val)
-                {
-                    best_move_val = val;
-                }
-            }
-        }
-        return best_move_val;
-    }
-    return -1; // Should never get here
-}
-
-int minimax_decision(int **board, int player)
-{
-    int *possible_moves = malloc(sizeof(int) * 60);
-    int num_possible_moves = 0;
-    int opponent = get_opponent(player);
-    num_possible_moves = get_possible_moves(board, possible_moves, num_possible_moves);
-    if (num_possible_moves == 0) // if no moves return -1
-    {
-        return -1;
-    }
-    else
-    {
-        int best_move_val = -99999;
-        int bestXY = possible_moves[0];
-        for (int i = 0; i < num_possible_moves; i++)
-        {
-            int **temp_board = copy_board(board);
-            make_move(temp_board, possible_moves[i], player);
-            int val = minimax_value(temp_board, player, opponent, 1);
-            if (val > best_move_val)
-            {
-                best_move_val = val;
-                bestXY = possible_moves[i];
-            }
-        }
-        return bestXY;
-    }
 }
 
 int rcv_move_auto(int **board, int player)

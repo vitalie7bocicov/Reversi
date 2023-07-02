@@ -41,6 +41,13 @@ int **init_board()
     return board;
 }
 
+void free_board(int **board)
+{
+    for (int i = 0; i < 8; i++)
+        free(board[i]);
+    free(board);
+}
+
 char *init_ldboard()
 {
 
@@ -59,13 +66,12 @@ char *init_ldboard()
 
 void pc_vs_player(int **board, char *ldboard, int *score, int desc, int player)
 {
-    printf("pc vs player entered\n");
     int opp = get_opponent(player);
 
     int gameOver = 0;
     while (!gameOver && gameOver != -1)
     {
-        gameOver = move_pc(board, score, player);
+        gameOver = move_pc(board, score, opp);
         if (gameOver)
             break;
         gameOver = move_player(board, score, desc, player);
@@ -101,8 +107,6 @@ void endgame(int **board, char *ldboard, int *score, int desc1, int desc2)
     msg_score(desc2, score);
     msg_board(board, desc2);
     msg_endgame(ldboard, desc1, desc2, score);
-    close(desc1);
-    close(desc2);
 }
 
 void play(int **board, char *ldboard, int *score, int desc1, int desc2)
@@ -143,10 +147,10 @@ void play(int **board, char *ldboard, int *score, int desc1, int desc2)
                 pc_vs_player(board, ldboard, score, desc1, 1);
         }
     }
-    for (int i = 0; i < 8; i++)
-        free(board[i]);
-
-    free(board);
+    free_board(board);
+    free(ldboard);
+    close(desc1);
+    close(desc2);
     printf("MATCH OVER!\n");
     fflush(stdout);
 }

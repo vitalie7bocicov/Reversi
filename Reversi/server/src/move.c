@@ -137,3 +137,16 @@ int move_player(int **board, int *score, int desc, int player)
         return 1;
     return 0;
 }
+
+void make_move(int **board, int move, int player)
+{
+    int i = move / 10;
+    int j = move % 10;
+    int dumb_score[3];
+    dumb_score[1] = 2;
+    dumb_score[2] = 2;
+    board[i][j] = player;
+    remove_possible_moves(board);
+    capture_pieces(board, dumb_score, i, j, player);
+    mark_possible_moves(board, get_opponent(player));
+}

@@ -128,8 +128,6 @@ int check_msg(int sd)
         return ok;
 
     buff[ok] = '\0';
-    printf("msg received: %s\n", buff);
-    printf("msg len: %d\n", m_len);
 
     if (check_conn(sd, buff))
         return 1;
@@ -145,7 +143,6 @@ int check_msg(int sd)
 
     if (check_gameover(sd, buff))
     {
-        printf("%s\n", buff);
         fflush(stdout);
         if (check_win(sd, buff))
             return 7;
